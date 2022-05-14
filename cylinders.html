@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="myCanvas" width="500" height="500" style="border:1px solid #ffccff;">
+Your browser does not support the canvas element.
+</canvas>
+
+<br>
+R1: <input type="number" id="radius1" value="110"><br>
+R2: <input type="number" id="radius2" value="50"><br>
+h: <input type="number" id="height1" value="200"><br>
+segments: <input type="number" id="segments" value="21"><br><br>
+
+scale: <input type="number" id="scale" value=1.0>
+alpha: <input type="number" id="alpha1" value=0><br>
+
+<p>
+<button onclick="updateMyCanvas()">Update</button>
+</p>
+
+<script>
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+
+updateMyCanvas()
+
+function  updateMyCanvas() {
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    var scale = document.getElementById("scale").value 
+    if( scale < 0.1) {
+        scale = 0.1
+        document.getElementById("scale").value = 0.1
+    }
+
+    let alpha1 = document.getElementById("alpha1").value 
+    let center1 = [250,200]
+    let radius1 = document.getElementById("radius1").value * scale
+    h1 = document.getElementById("height1").value * scale
+
+    let alpha2 = alpha1
+    let center2 = center1
+    let radius2 = document.getElementById("radius2").value * scale
+    h2 = h1
+
+    let segments = document.getElementById("segments").value
+    //draw2Ellipse(context, [200,200], [100,50], [50,25], [0, Math.PI*2], alpha1,'green')
+
+    drawCylinder(context, center1, radius1, h1,  alpha1, 'red')
+    drawCylinder(context, center2, radius2, h2,  alpha2, 'blue')
+    draw2Ellipse(context, center1, 
+        [radius1,radius1*scaleAxis], 
+        [radius2,radius2*scaleAxis], 
+        [0, Math.PI*2], alpha1,'green',segments)
+
+}
+
+function drawCylinder(ctx, center, r, h, angle, color, segments) {
+    scaleAxis = 0.45
+    drawEllipse(context, center,[r,r*scaleAxis], [0, Math.PI*2], angle, color)
+    drawEllipse(context, [center[0]-h*Math.sin(angle),center[1]+h*Math.cos(angle)],[r,r*scaleAxis], [0, Math.PI], angle, color)    
+    ctx.beginPath();
+
+    let left = [center[0]-r*Math.cos(angle),center[1]-r*Math.sin(angle)]
+    ctx.moveTo(left[0],left[1])
+    ctx.lineTo(left[0]-h*Math.sin(angle),left[1]+h*Math.cos(angle))
+
+    let right = [center[0]+r*Math.cos(angle),center[1]+r*Math.sin(angle)]
+    ctx.moveTo(right[0],right[1])
+    ctx.lineTo(right[0]-h*Math.sin(angle),right[1]+h*Math.cos(angle))
+    
+    ctx.stroke();                                   
+    ctx.closePath();    
+}
+
+function drawEllipse(ctx, center, sizes, sector, angle, color) {
+    ctx.save();                                     // сохраняем стейт контекста
+    ctx.beginPath();
+    ctx.translate(center[0], center[1]);            // перемещаем координаты в центр эллипса
+    ctx.rotate(angle);                              // поворачиваем координатную сетку на нужный угол
+    ctx.scale(1, sizes[1]/sizes[0]);                // сжимаем по вертикали
+    ctx.arc(0, 0, sizes[0], sector[0], sector[1]);  // рисуем сектор окружности
+    ctx.restore();                                  // восстанавливает стейт, иначе обводка и заливка будут сплющенными и повёрнутыми
+    ctx.strokeStyle = color;
+    ctx.stroke();                                   // обводим
+    ctx.closePath();
+}
+
+function draw2Ellipse(ctx, center, sizes, sizes2, sector, angle, color, segments) {
+    ctx.save();                                     // сохраняем стейт контекста
+    ctx.beginPath();
+    ctx.translate(center[0], center[1]);            // перемещаем координаты в центр эллипса
+    ctx.rotate(angle);                              // поворачиваем координатную сетку на нужный угол
+    ctx.scale(1, sizes[1]/sizes[0]);                // сжимаем по вертикали
+    // два кольца, можем не рисовать
+    // ctx.arc(0, 0, sizes[0], sector[0], sector[1]);  // рисуем сектор окружности
+    // ctx.moveTo(sizes2[0],0)
+    // ctx.arc(0, 0, sizes2[0],sector[0], sector[1]);  // рисуем сектор окружности
+    
+    //зигзаг между кольцами )
+    
+    var x, y, firstTime=true;
+	var dt = 2*Math.PI/segments;
+    for(var t=0; t < 2*Math.PI; t+=dt) {
+		if(firstTime) {
+            x = sizes[0]*Math.cos(t);
+            y = sizes[0]*Math.sin(t);
+		 	firstTime = false;
+		 	ctx.moveTo(x, y);
+            x = sizes2[0]*Math.cos(t+dt/2);
+		    y = sizes2[0]*Math.sin(t+dt/2);  
+            ctx.lineTo(x, y);            
+		 } else 
+        {
+            x = sizes[0]*Math.cos(t);
+            y = sizes[0]*Math.sin(t);
+			ctx.lineTo(x, y);
+            x = sizes2[0]*Math.cos(t+dt/2);
+		    y = sizes2[0]*Math.sin(t+dt/2);            
+			ctx.lineTo(x, y);
+		}
+	}
+    x = sizes[0]*Math.cos(0);
+    y = sizes[0]*Math.sin(t);
+	ctx.lineTo(x, y);    
+
+    ctx.restore();                                  // восстанавливает стейт, иначе обводка и заливка будут сплющенными и повёрнутыми
+    ctx.strokeStyle = color;
+    ctx.stroke();                                   // обводим
+    ctx.closePath();
+}
+
+
+</script>
+
+</body>
+</html>
+
